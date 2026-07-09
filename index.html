@@ -532,7 +532,7 @@ table.alerts tr.new-alert{animation:rowin .5s ease}
       <div class="view-head">
         <div class="eyebrow">Adım 4 · Takip</div>
         <h1>Taburculuk Sonrası Dijital Takip</h1>
-        <p>Sistem 3., 7., 15. ve 30. günlerde kısa anket SMS'leri gönderir. Riskli yanıtlar anında hemşire ekranına düşer. <b>Hasta adına yanıt vererek akışı deneyin.</b></p>
+        <p>Sistem 3., 7., 15. ve 30. günlerde kısa anket SMS'leri gönderir. Riskli yanıtlar anında hastane ekranına düşer. <b>Hasta adına yanıt vererek akışı deneyin.</b></p>
       </div>
       <div class="takip-grid">
         <div class="card">
@@ -544,7 +544,7 @@ table.alerts tr.new-alert{animation:rowin .5s ease}
           <div class="card" style="margin-bottom:16px">
             <h2>Yanıt değerlendirme mantığı</h2>
             <div class="step-note"><span class="chip chip-normal">Normal</span><div>Takip planı değişmeden sürer.</div></div>
-            <div class="step-note"><span class="chip chip-riskli">Riskli</span><div>Hemşire ekranına uyarı düşer; hasta 24 saat içinde aranır.</div></div>
+            <div class="step-note"><span class="chip chip-riskli">Riskli</span><div>Hastane ekranına uyarı düşer; hasta 24 saat içinde aranır.</div></div>
             <div class="step-note"><span class="chip chip-acil">Acil</span><div>İlgili kliniğe anında bildirim gider; hasta 112 / acile yönlendirilir.</div></div>
           </div>
           <div class="card">
@@ -1052,7 +1052,7 @@ function renderTakip(){
     if(answered){
       const risky = takipState[i]===t.riskyIf;
       result = `<div class="tl-result show">${risky
-        ? '<span class="chip chip-riskli">Riskli yanıt</span> &nbsp;Hemşire ekranına uyarı iletildi.'
+        ? '<span class="chip chip-riskli">Riskli yanıt</span> &nbsp;Hastane ekranına uyarı iletildi.'
         : '<span class="chip chip-normal">Normal</span> &nbsp;Takip planı devam ediyor.'}</div>`;
     }
     return `<div class="tl-item ${cls}">
@@ -1231,7 +1231,7 @@ const STORY = [
   {view:'telefon', text:'3️⃣ Dakikalar içinde Ahmet Bey\'in telefonuna kişiye özel SMS ulaşıyor. Bağlantıya dokununca tanısına özel eğitim merkezi açılıyor — deneyin!', run:()=>{smsSent=true;renderSms();phoneScreen('sms');}},
   {view:'telefon', text:'4️⃣ Eğitim merkezinde video, broşür, sesli anlatım, SSS, beslenme ve acil durum bilgileri var. Mini bilgi testiyle öğrenme pekiştiriliyor ve HBYS\'ye işleniyor.', run:()=>openPortal()},
   {view:'asistan', text:'5️⃣ Aklına takılan olursa Ahmet Bey 7/24 yapay zekâ asistanına sorabiliyor. Asistan yalnızca onaylı içerikten yanıt veriyor; riskli mesajları ekibe taşıyor.', run:()=>{ if(document.querySelectorAll('#chat-body .msg').length<2){ setTimeout(()=>userSays('İnhalerimi nasıl kullanırım?'),600);} }},
-  {view:'takip', text:'6️⃣ Taburculuktan sonra sistem 3., 7., 15. ve 30. günlerde kısa anketler gönderiyor. Riskli bir yanıt anında hemşire ekranına düşüyor — bir soruya "Evet" deyin.', run:()=>resetTakip()},
+  {view:'takip', text:'6️⃣ Taburculuktan sonra sistem 3., 7., 15. ve 30. günlerde kısa anketler gönderiyor. Riskli bir yanıt anında hastane ekranına düşüyor — bir soruya "Evet" deyin.', run:()=>resetTakip()},
   {view:'risk', text:'7️⃣ Projenin kalbi: yapay zekâ, vital bulguları ve semptomları birlikte analiz ederek alevlenme riskini kötüleşme başlamadan 3-5 gün önce öngörüyor ve ekibi uyarıyor.'},
   {view:'hemsire', text:'8️⃣ Tüm uyarılar hemşire panelinde önceliklendiriliyor. Ahmet Bey aynı gün arandı, polikliniğe çağrıldı — olası bir yatış erken müdahaleyle önlendi.'},
   {view:'yonetim', text:'9️⃣ Yönetim panelinde erişim, tamamlama ve tekrar başvuru göstergeleri izleniyor. Sonuç: standart eğitim, ölçülebilir kalite, daha az yeniden yatış. 🎯'},
