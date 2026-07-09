@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADHEP Demo — Akıllı Dijital Hasta Eğitim ve Takip Platformu</title>
+<style>
+:root{
+  --page:#f1f4f5;
+  --surface:#fcfcfb;
+  --navy:#0e2a3a;
+  --navy-2:#123549;
+  --primary:#0f6f8c;
+  --primary-strong:#0b5871;
+  --primary-wash:#e3eef2;
+  --ink:#101b22;
+  --ink-2:#52514e;
+  --muted:#898781;
+  --grid:#e1e0d9;
+  --border:rgba(11,11,11,.10);
+  --good:#0ca30c;
+  --good-text:#006300;
+  --warn:#fab219;
+  --serious:#ec835a;
+  --critical:#d03b3b;
+  --s1:#2a78d6; --s2:#1baf7a; --s3:#eda100; --s4:#008300; --s5:#4a3aa7; --s6:#e34948;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(14,42,58,.06), 0 6px 24px rgba(14,42,58,.07);
+  --font:"Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono:"Cascadia Mono", Consolas, monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:15px;line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+
+/* ---------- App shell ---------- */
+#app{display:flex;min-height:100vh}
+#sidebar{width:232px;flex-shrink:0;background:var(--navy);color:#dce8ee;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo b{display:block;font-size:22px;letter-spacing:-.02em;color:#fff}
+.logo span{font-size:11.5px;color:#9db8c4;display:block;line-height:1.35;margin-top:4px}
+nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:#c3d5dd;padding:10px 12px;border-radius:9px;font-size:14px;margin-bottom:2px;transition:background .15s}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.85}
+.nav-item:hover{background:rgba(255,255,255,.07)}
+.nav-item.active{background:var(--primary);color:#fff}
+.nav-item .badge{margin-left:auto;background:var(--critical);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 5px}
+.nav-item .badge.show{display:inline-flex}
+.nav-sep{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#7f9baa;padding:14px 12px 6px}
+.demo-tag{margin:12px;padding:10px 12px;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.25);border-radius:10px;font-size:11.5px;color:#9db8c4;line-height:1.45}
+.demo-tag b{color:#f5c86b}
+
+#main{flex:1;min-width:0;padding:28px 34px 130px}
+.view{display:none;max-width:1060px;margin:0 auto}
+.view.active{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.view-head{margin-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);margin-bottom:6px}
+h1{font-size:27px;letter-spacing:-.02em;line-height:1.2}
+h2{font-size:18px;letter-spacing:-.01em}
+.view-head p{color:var(--ink-2);margin-top:6px;max-width:640px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+
+.btn{border:0;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;transition:transform .1s, box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-strong)}
+.btn-ghost{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-ghost:hover{background:var(--primary-wash)}
+.btn-danger{background:var(--critical);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px}
+.chip-normal{background:#e7f4e7;color:var(--good-text)}
+.chip-riskli{background:#fdf1e0;color:#8a5a00}
+.chip-acil{background:#fbe4e4;color:#9c2323}
+.chip-info{background:var(--primary-wash);color:var(--primary-strong)}
+
+/* ---------- Kapak ---------- */
+#view-kapak .hero{background:linear-gradient(135deg,var(--navy) 0%,#134a63 60%,var(--primary) 100%);color:#fff;border-radius:20px;padding:46px 44px;position:relative;overflow:hidden}
+.hero-rings{position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:340px;height:340px;pointer-events:none}
+.hero-rings circle{fill:none;stroke:rgba(255,255,255,.14);stroke-width:1.5}
+.hero-rings .pulse{animation:breathe 4.5s ease-in-out infinite;transform-origin:center}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.07);opacity:1}}
+@media (prefers-reduced-motion: reduce){.hero-rings .pulse,.typing i,.risk-ring-anim{animation:none !important}}
+.hero .eyebrow{color:#8fd0e4}
+.hero h1{font-size:34px;max-width:560px;color:#fff}
+.hero p.tagline{font-size:17px;color:#c9e2ec;margin:12px 0 26px;max-width:520px}
+.hero .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.hero .btn-light{background:#fff;color:var(--navy)}
+.hero .btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+.hero .btn-outline:hover{border-color:#fff}
+.hero .credit{margin-top:30px;font-size:12.5px;color:#9dc4d4}
+.problem-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
+.problem-row .card b.num{font-size:30px;letter-spacing:-.02em;display:block;color:var(--navy)}
+.problem-row .card span{font-size:13px;color:var(--ink-2)}
+.scenario-list{margin-top:20px}
+.scenario-list h2{margin-bottom:12px}
+.scenario{display:flex;gap:14px;align-items:flex-start;padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);margin-bottom:8px;transition:border-color .15s}
+.scenario:hover{border-color:var(--primary)}
+.scenario .s-id{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--primary);background:var(--primary-wash);border-radius:7px;padding:4px 8px;flex-shrink:0;margin-top:2px}
+.scenario b{display:block;font-size:14px}
+.scenario span{font-size:13px;color:var(--ink-2)}
+.scenario button{margin-left:auto;flex-shrink:0;align-self:center}
+
+/* ---------- HBYS ---------- */
+.hbys-frame{background:#e8e6e1;border:1px solid #c8c5bd;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.hbys-titlebar{background:linear-gradient(#5a6b76,#46545e);color:#fff;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px;font-family:var(--mono)}
+.hbys-titlebar .dots{margin-left:auto;display:flex;gap:5px}
+.hbys-titlebar .dots i{width:10px;height:10px;border-radius:2px;background:#8fa0ab;display:block}
+.hbys-toolbar{background:#dedbd4;border-bottom:1px solid #c8c5bd;padding:6px 10px;font-size:12px;color:#555;display:flex;gap:14px;font-family:var(--mono)}
+.hbys-body{display:grid;grid-template-columns:1.15fr 1fr;min-height:420px}
+.hbys-list{border-right:1px solid #c8c5bd;background:#f4f2ee}
+.hbys-list h3{font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:#666;padding:10px 12px;border-bottom:1px solid #d5d2ca}
+table.hbys-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.hbys-table th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:#777;text-align:left;padding:7px 10px;border-bottom:1px solid #d5d2ca;background:#eceae4}
+table.hbys-table td{padding:8px 10px;border-bottom:1px solid #e3e0d9}
+table.hbys-table tr.row{cursor:pointer}
+table.hbys-table tr.row:hover{background:#e9f0ec}
+table.hbys-table tr.row.selected{background:#d7e7de}
+.icd{font-family:var(--mono);font-size:11.5px;background:#e3e0d9;border-radius:4px;padding:1px 6px}
+.hbys-detail{padding:16px;background:#faf9f6}
+.hbys-detail .empty{color:#999;font-size:13px;text-align:center;margin-top:150px;font-family:var(--mono)}
+.hbys-field{display:flex;font-size:13px;border-bottom:1px dotted #ddd9d0;padding:7px 2px}
+.hbys-field label{width:150px;color:#777;font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;padding-top:1px}
+.edu-pack{margin-top:14px;background:#eef4f0;border:1px solid #cfe0d5;border-radius:8px;padding:12px}
+.edu-pack h4{font-size:12.5px;color:#2e5c44;margin-bottom:8px;display:flex;gap:6px;align-items:center}
+.edu-pack ul{list-style:none;font-size:12.5px;color:#40584b}
+.edu-pack li{padding:2px 0 2px 18px;position:relative}
+.edu-pack li::before{content:"✓";position:absolute;left:0;color:var(--good)}
+.hbys-actions{margin-top:16px;display:flex;gap:10px}
+.sms-log{margin-top:14px;font-family:var(--mono);font-size:11.5px;background:#111d16;color:#7fd6a0;border-radius:8px;padding:10px 12px;display:none;line-height:1.7}
+.sms-log.show{display:block}
+
+/* ---------- Phone ---------- */
+.phone-wrap{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.phone{width:330px;flex-shrink:0;background:#12181d;border-radius:38px;padding:10px;box-shadow:0 20px 50px rgba(14,42,58,.25)}
+.phone-screen{background:#f4f6f7;border-radius:30px;overflow:hidden;height:640px;display:flex;flex-direction:column;position:relative}
+.phone-notch{height:26px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:10.5px;color:#333;font-weight:600}
+.pscreen{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.pscreen.active{display:flex}
+/* SMS app */
+.sms-head{background:#fff;padding:10px 14px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:10px}
+.sms-avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.sms-head b{font-size:13.5px;display:block}
+.sms-head span{font-size:11px;color:#888}
+.sms-body{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sms-bubble{background:#fff;border:1px solid #e5e5e5;border-radius:16px 16px 16px 5px;padding:12px 14px;font-size:13px;max-width:92%;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.04);animation:bubblein .35s ease}
+@keyframes bubblein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sms-bubble .sms-time{font-size:10px;color:#999;margin-top:6px}
+.sms-link{color:var(--primary);font-weight:600;text-decoration:underline;cursor:pointer;word-break:break-all}
+.sms-waiting{color:#999;font-size:12px;text-align:center;margin-top:40px}
+/* Portal */
+.portal-head{background:var(--primary);color:#fff;padding:14px 16px}
+.portal-head b{font-size:15px;display:block}
+.portal-head span{font-size:11.5px;color:#c8e4ee}
+.portal-patient{background:var(--primary-strong);color:#dff0f6;font-size:11.5px;padding:6px 16px;display:flex;justify-content:space-between}
+.portal-body{padding:14px;flex:1}
+.tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:#fff;border:1px solid #e6e6e6;border-radius:13px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .12s, border-color .12s}
+.tile:hover{transform:translateY(-2px);border-color:var(--primary)}
+.tile .t-ico{width:38px;height:38px;border-radius:11px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.tile b{font-size:12px;display:block;line-height:1.25}
+.tile span{font-size:10.5px;color:#999}
+.portal-quizbtn{margin-top:12px;width:100%}
+.pback{background:none;border:0;color:#fff;font-size:12px;padding:0;margin-bottom:4px;opacity:.85}
+/* Portal content list */
+.content-list{padding:14px;display:flex;flex-direction:column;gap:10px}
+.video-card{background:#fff;border:1px solid #e6e6e6;border-radius:13px;overflow:hidden;cursor:pointer}
+.video-thumb{height:96px;background:linear-gradient(120deg,#134a63,#0f6f8c);position:relative;display:flex;align-items:center;justify-content:center}
+.video-thumb .play{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;color:var(--navy);font-size:14px;padding-left:3px}
+.video-thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-family:var(--mono)}
+.video-card b{display:block;font-size:12.5px;padding:9px 12px 3px}
+.video-card .vmeta{font-size:10.5px;color:#999;padding:0 12px 10px}
+.video-progress{height:3px;background:#eee}
+.video-progress i{display:block;height:100%;background:var(--good);width:0;transition:width 2.5s linear}
+.faq-item{background:#fff;border:1px solid #e6e6e6;border-radius:11px;padding:11px 13px;font-size:12.5px}
+.faq-item b{display:block;color:var(--primary-strong);margin-bottom:3px}
+.faq-item span{color:#555;font-size:12px}
+/* Quiz */
+.quiz-q{background:#fff;border:1px solid #e6e6e6;border-radius:13px;padding:14px;margin-bottom:10px}
+.quiz-q b{font-size:13px;display:block;margin-bottom:9px}
+.quiz-opt{display:block;width:100%;text-align:left;background:#f5f6f7;border:1.5px solid #e3e5e7;border-radius:9px;padding:8px 11px;font-size:12.5px;margin-bottom:6px}
+.quiz-opt:hover{border-color:var(--primary)}
+.quiz-opt.correct{background:#e7f4e7;border-color:var(--good);color:var(--good-text);font-weight:600}
+.quiz-opt.wrong{background:#fbe4e4;border-color:var(--critical);color:#9c2323}
+.quiz-done{background:#e7f4e7;border:1px solid #bfe3bf;border-radius:13px;padding:14px;text-align:center;font-size:13px;color:var(--good-text);display:none}
+.quiz-done.show{display:block}
+/* Chat */
+.chat-body{flex:1;padding:12px;display:flex;flex-direction:column;gap:9px;overflow-y:auto}
+.msg{max-width:85%;padding:9px 13px;border-radius:15px;font-size:12.8px;line-height:1.45;animation:bubblein .3s ease}
+.msg.bot{background:#fff;border:1px solid #e5e5e5;border-radius:15px 15px 15px 4px;align-self:flex-start}
+.msg.user{background:var(--primary);color:#fff;border-radius:15px 15px 4px 15px;align-self:flex-end}
+.msg.alertmsg{background:#fbe4e4;border:1px solid #f0b9b9;color:#8c1f1f;border-radius:15px 15px 15px 4px;align-self:flex-start}
+.msg .mini-video{margin-top:8px;background:#f0f4f6;border-radius:9px;padding:7px 10px;font-size:11.5px;display:flex;align-items:center;gap:8px;color:var(--primary-strong);font-weight:600;cursor:pointer}
+.typing{align-self:flex-start;background:#fff;border:1px solid #e5e5e5;border-radius:15px;padding:11px 14px;display:none;gap:4px}
+.typing.show{display:flex}
+.typing i{width:6px;height:6px;border-radius:50%;background:#aaa;animation:tblink 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}
+.typing i:nth-child(3){animation-delay:.4s}
+@keyframes tblink{0%,100%{opacity:.3}50%{opacity:1}}
+.chat-chips{padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #e8e8e8;background:#fbfbfa}
+.chat-chip{background:var(--primary-wash);color:var(--primary-strong);border:0;border-radius:99px;font-size:11.5px;padding:6px 11px;font-weight:600}
+.chat-chip:hover{background:#d2e5ec}
+.chat-input{display:flex;gap:8px;padding:9px 12px;background:#fff;border-top:1px solid #e8e8e8}
+.chat-input input{flex:1;border:1.5px solid #e0e0e0;border-radius:99px;padding:8px 14px;font-size:12.5px;font-family:inherit;outline:none}
+.chat-input input:focus{border-color:var(--primary)}
+.chat-input button{border-radius:99px}
+/* side panel next to phone */
+.side-panel{flex:1;min-width:300px}
+.side-panel .card{margin-bottom:14px}
+.step-note{display:flex;gap:11px;padding:11px 0;border-bottom:1px dashed var(--grid);font-size:13.5px}
+.step-note:last-child{border-bottom:0}
+.step-note .n{width:24px;height:24px;flex-shrink:0;border-radius:50%;background:var(--primary-wash);color:var(--primary-strong);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.diag-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.diag-chip{border:1.5px solid var(--grid);background:var(--surface);border-radius:99px;padding:6px 14px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.diag-chip.active{border-color:var(--primary);background:var(--primary-wash);color:var(--primary-strong)}
+
+/* ---------- Takip ---------- */
+.takip-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.tl-item{position:relative;padding:0 0 22px 34px}
+.tl-item::before{content:"";position:absolute;left:10px;top:26px;bottom:0;width:2px;background:var(--grid)}
+.tl-item:last-child::before{display:none}
+.tl-dot{position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;background:var(--surface);border:2.5px solid var(--grid);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted)}
+.tl-item.active .tl-dot{border-color:var(--primary);color:var(--primary)}
+.tl-item.done .tl-dot{border-color:var(--good);background:var(--good);color:#fff}
+.tl-item.locked{opacity:.45}
+.tl-day{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tl-q{font-size:14.5px;font-weight:600;margin:2px 0 8px}
+.tl-answers{display:flex;gap:8px}
+.tl-result{font-size:12.5px;margin-top:8px;display:none}
+.tl-result.show{display:block}
+
+/* ---------- Risk ---------- */
+.risk-top{display:grid;grid-template-columns:300px 1fr;gap:18px;margin-bottom:18px}
+.risk-gauge-card{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-wrap{position:relative;width:190px;height:190px;margin:6px auto}
+.gauge-wrap svg{transform:rotate(-90deg)}
+.gauge-bg{fill:none;stroke:var(--grid);stroke-width:13}
+.gauge-val{fill:none;stroke:var(--critical);stroke-width:13;stroke-linecap:round;transition:stroke-dashoffset 1.2s ease}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-center b{font-size:38px;letter-spacing:-.02em}
+.gauge-center span{font-size:11.5px;color:var(--ink-2)}
+.risk-ring-anim{position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(208,59,59,.35);animation:breathe 3.5s ease-in-out infinite}
+.risk-level{margin-top:10px}
+.factor{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--grid);font-size:13.5px}
+.factor:last-child{border-bottom:0}
+.factor .f-ico{width:26px;height:26px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.f-crit{background:#fbe4e4;color:#9c2323}
+.f-warn{background:#fdf1e0;color:#8a5a00}
+.factor b{font-size:13.5px;display:block}
+.factor span{font-size:12px;color:var(--ink-2)}
+.charts-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+.chart-card h3{font-size:13px;color:var(--ink-2);margin-bottom:2px}
+.chart-card .cur{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.chart-card .cur small{font-size:12px;color:var(--muted);font-weight:400}
+.chart-box{margin-top:6px}
+.alert-feed .factor .f-ico{background:var(--primary-wash);color:var(--primary-strong)}
+
+/* ---------- Hemşire ---------- */
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+.mini-stats .card b{font-size:26px;display:block;letter-spacing:-.02em}
+.mini-stats .card span{font-size:12.5px;color:var(--ink-2)}
+table.alerts{width:100%;border-collapse:collapse;font-size:13.5px}
+table.alerts th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--grid)}
+table.alerts td{padding:11px 10px;border-bottom:1px solid #efeeea;vertical-align:middle}
+table.alerts tr.resolved{opacity:.45}
+table.alerts tr.new-alert{animation:rowin .5s ease}
+@keyframes rowin{from{background:#fdf1e0}to{background:transparent}}
+.alert-src{font-size:12px;color:var(--ink-2)}
+
+/* ---------- Yönetim ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+.kpi .lbl{font-size:12.5px;color:var(--ink-2)}
+.kpi b{font-size:27px;display:block;letter-spacing:-.02em;margin:2px 0}
+.kpi .delta{font-size:12px;font-weight:600}
+.delta.up{color:var(--good-text)}
+.delta.down{color:var(--good-text)}
+.dash-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-bottom:18px}
+/* bars */
+.hbar-row{display:grid;grid-template-columns:120px 1fr 52px;align-items:center;gap:10px;margin-bottom:9px;font-size:13px}
+.hbar-row .lbl{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar-track{height:13px;border-radius:4px;background:#f0efec;overflow:hidden}
+.hbar-fill{height:100%;border-radius:0 4px 4px 0;width:0;transition:width .8s ease}
+.hbar-row .val{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.kvkk{margin-top:22px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+
+/* ---------- Story bar ---------- */
+#storybar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);width:min(680px,calc(100vw - 280px));background:var(--navy);color:#fff;border-radius:16px;padding:14px 18px;box-shadow:0 12px 40px rgba(14,42,58,.4);display:none;z-index:50}
+#storybar.show{display:block}
+.sb-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sb-step{font-family:var(--mono);font-size:11px;color:#8fd0e4;letter-spacing:.05em}
+.sb-close{margin-left:auto;background:none;border:0;color:#9db8c4;font-size:16px;line-height:1}
+.sb-text{font-size:14px;line-height:1.5;color:#e5eef2;min-height:42px}
+.sb-nav{display:flex;gap:8px;margin-top:10px;align-items:center}
+.sb-dots{display:flex;gap:5px;margin-left:auto}
+.sb-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25)}
+.sb-dots i.on{background:#8fd0e4}
+
+/* ---------- Toast ---------- */
+#toasts{position:fixed;right:22px;top:20px;z-index:100;display:flex;flex-direction:column;gap:9px}
+.toast{background:var(--navy);color:#fff;border-radius:12px;padding:12px 16px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:flex-start;max-width:340px;animation:toastin .3s ease}
+.toast.t-crit{background:var(--critical)}
+.toast.t-good{background:#0d5c2e}
+@keyframes toastin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+/* tooltip */
+#tip{position:fixed;background:var(--navy);color:#fff;font-size:11.5px;padding:5px 9px;border-radius:7px;pointer-events:none;display:none;z-index:200;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+@media (max-width: 980px){
+  #sidebar{display:none}
+  #main{padding:18px 16px 150px}
+  .grid-2,.grid-3,.takip-grid,.risk-top,.charts-3,.dash-grid,.kpi-row,.problem-row,.mini-stats{grid-template-columns:1fr}
+  .hbys-body{grid-template-columns:1fr}
+  #storybar{width:calc(100vw - 24px)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo">
+      <b>ADHEP</b>
+      <span>Akıllı Dijital Hasta Eğitim<br>ve Takip Platformu</span>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="kapak" onclick="showView('kapak')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Tanıtım</button>
+      <div class="nav-sep">Klinik Tarafı</div>
+      <button class="nav-item" data-view="hbys" onclick="showView('hbys')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>HBYS Ekranı</button>
+      <button class="nav-item" data-view="hemsire" onclick="showView('hemsire')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>Hemşire Paneli<span class="badge" id="nurse-badge">0</span></button>
+      <button class="nav-item" data-view="yonetim" onclick="showView('yonetim')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Yönetim Paneli</button>
+      <div class="nav-sep">Hasta Tarafı</div>
+      <button class="nav-item" data-view="telefon" onclick="showView('telefon')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>Hasta Telefonu</button>
+      <button class="nav-item" data-view="asistan" onclick="showView('asistan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-8 8H4l2-3a8 8 0 1115-5z"/></svg>Yapay Zeka Asistanı</button>
+      <button class="nav-item" data-view="takip" onclick="showView('takip')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18M9 15l2 2 4-4"/></svg>Taburculuk Takibi</button>
+      <div class="nav-sep">Yapay Zeka</div>
+      <button class="nav-item" data-view="risk" onclick="showView('risk')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 8-6-16-3 8H2"/></svg>Alevlenme Risk Analizi</button>
+    </nav>
+    <div class="demo-tag"><b>DEMO SÜRÜMÜ</b> — Tüm veriler temsilidir; gerçek hasta verisi içermez. Sunum amaçlıdır.</div>
+  </aside>
+
+  <main id="main">
+
+    <!-- ============ KAPAK ============ -->
+    <section class="view active" id="view-kapak">
+      <div class="hero">
+        <svg class="hero-rings" viewBox="0 0 340 340">
+          <circle cx="170" cy="170" r="70" class="pulse"/>
+          <circle cx="170" cy="170" r="105" class="pulse" style="animation-delay:.6s"/>
+          <circle cx="170" cy="170" r="140" class="pulse" style="animation-delay:1.2s"/>
+        </svg>
+        <div class="eyebrow">Akıllı Dijital Hasta Eğitim ve Takip Platformu</div>
+        <h1>Her hastaya doğru bilgi, doğru zamanda, doğru kanaldan.</h1>
+        <p class="tagline">Taburculuktan eve, evden kliniğe: tanıya özel eğitim, yapay zekâ destekli takip ve erken uyarı — tek platformda.</p>
+        <div class="hero-actions">
+          <button class="btn btn-light btn" onclick="startStory()">▶&nbsp; Hasta Yolculuğunu Başlat</button>
+          <button class="btn btn-outline" onclick="showView('hbys')">Serbest Gezinti</button>
+        </div>
+        <div class="credit">Tuba Bodur, Koordinatör Hemşire — Süreyyapaşa Göğüs Hastalıkları ve Göğüs Cerrahisi EAH<br>İstanbul İl Sağlık Müdürlüğü · 10. Sağlık Akademisi</div>
+      </div>
+
+      <div class="problem-row">
+        <div class="card"><b class="num">%50</b><span>Taburculuk sonrası tedaviye uyumsuzluk oranı bu düzeye ulaşabiliyor.</span></div>
+        <div class="card"><b class="num">%20–30</b><span>Hastaların gereksiz tekrar hastane başvurusu oranı.</span></div>
+        <div class="card"><b class="num">3–5 gün</b><span>Yapay zekâ, KOAH alevlenme riskini bu kadar önceden öngörmeyi hedefliyor.</span></div>
+      </div>
+
+      <div class="scenario-list">
+        <h2>Demo Senaryoları</h2>
+        <div class="scenario"><span class="s-id">S1</span><div><b>Tanıya özel eğitim SMS'i</b><span>Ahmet Yılmaz KOAH tanısıyla taburcu edilir; sistem otomatik eğitim SMS'i gönderir.</span></div><button class="btn btn-ghost btn-sm" onclick="runScenario(1)">Oynat</button></div>
+        <div class="scenario"><span class="s-id">S2</span><div><b>Hasta eğitim portalı ve bilgi testi</b><span>Hasta linke tıklar; video, broşür ve SSS içeriklerine ulaşır, mini testi tamamlar.</span></div><button class="btn btn-ghost btn-sm" onclick="runScenario(2)">Oynat</button></div>
+        <div class="scenario"><span class="s-id">S3</span><div><b>Yapay zekâ asistanına acil mesaj</b><span>Hasta "Nefesim çok daralıyor" yazar; sistem acil bildirim üretir, hemşire ekranına düşer.</span></div><button class="btn btn-ghost btn-sm" onclick="runScenario(3)">Oynat</button></div>
+        <div class="scenario"><span class="s-id">S4</span><div><b>Taburculuk sonrası anket ve riskli yanıt</b><span>3. gün anketinde "nefes darlığım arttı" yanıtı klinik ekibe uyarı olarak iletilir.</span></div><button class="btn btn-ghost btn-sm" onclick="runScenario(4)">Oynat</button></div>
+        <div class="scenario"><span class="s-id">S5</span><div><b>Yapay zekâ erken uyarısı</b><span>Vital bulgular ve semptom skoru kötüleşir; alevlenme risk skoru yükselir, erken uyarı gönderilir.</span></div><button class="btn btn-ghost btn-sm" onclick="runScenario(5)">Oynat</button></div>
+      </div>
+    </section>
+
+    <!-- ============ HBYS ============ -->
+    <section class="view" id="view-hbys">
+      <div class="view-head">
+        <div class="eyebrow">Adım 1 · Klinik</div>
+        <h1>HBYS — Poliklinik / Taburculuk Ekranı</h1>
+        <p>Hekim muayeneyi tamamlar ve ICD tanısını girer. Taburculuk işlemiyle birlikte ADHEP, tanıya uygun eğitim paketini otomatik seçer ve SMS gönderimini tetikler. <b>Listeden bir hasta seçin.</b></p>
+      </div>
+      <div class="hbys-frame">
+        <div class="hbys-titlebar">⊞ HBYS v4.2 — Süreyyapaşa GH ve GC EAH · Göğüs Hastalıkları Servisi<span class="dots"><i></i><i></i><i></i></span></div>
+        <div class="hbys-toolbar"><span>Dosya</span><span>Hasta İşlemleri</span><span>Taburculuk</span><span>Raporlar</span><span style="margin-left:auto">Kullanıcı: Dr. Elif KARA</span></div>
+        <div class="hbys-body">
+          <div class="hbys-list">
+            <h3>Bugünkü Hasta Listesi — 09.07.2026</h3>
+            <table class="hbys-table">
+              <thead><tr><th>Hasta</th><th>Yaş</th><th>ICD</th><th>Tanı</th></tr></thead>
+              <tbody id="hbys-rows"></tbody>
+            </table>
+          </div>
+          <div class="hbys-detail" id="hbys-detail">
+            <div class="empty">← Hasta seçiniz</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TELEFON ============ -->
+    <section class="view" id="view-telefon">
+      <div class="view-head">
+        <div class="eyebrow">Adım 2 · Hasta</div>
+        <h1>Hastanın Telefonu — SMS ve Eğitim Portalı</h1>
+        <p>Taburculuktan dakikalar sonra hastaya kişiye özel SMS ulaşır. Bağlantı; video, broşür, sesli anlatım ve sık sorulan soruları içeren eğitim merkezini açar.</p>
+      </div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-notch"><span>14:32</span><span>▮▮▮ 🔋</span></div>
+            <!-- SMS screen -->
+            <div class="pscreen active" id="ps-sms">
+              <div class="sms-head"><div class="sms-avatar">SP</div><div><b>SÜREYYAPAŞA EAH</b><span>Kurumsal SMS</span></div></div>
+              <div class="sms-body" id="sms-body">
+                <div class="sms-waiting" id="sms-waiting">Henüz mesaj yok.<br><br>HBYS ekranından taburculuk yapıldığında<br>SMS burada görünecek —<br>veya aşağıdaki düğmeyle simüle edin.</div>
+              </div>
+              <div style="padding:10px 14px;background:#fff;border-top:1px solid #e8e8e8">
+                <button class="btn btn-primary btn-sm" style="width:100%" onclick="sendSms()">📩 SMS gönderimini simüle et</button>
+              </div>
+            </div>
+            <!-- Portal screen -->
+            <div class="pscreen" id="ps-portal">
+              <div class="portal-head">
+                <button class="pback" onclick="phoneScreen('sms')">‹ Geri</button>
+                <b id="portal-title">KOAH Hasta Eğitim Merkezi</b>
+                <span>egitim.sureyyapasa.gov.tr</span>
+              </div>
+              <div class="portal-patient"><span>👤 Ahmet YILMAZ</span><span id="portal-diag-tag">J44.1 · KOAH</span></div>
+              <div class="portal-body">
+                <div class="tile-grid" id="tile-grid"></div>
+                <button class="btn btn-primary portal-quizbtn" onclick="phoneScreen('quiz')">📝 Bilgi Testini Çöz (3 soru)</button>
+              </div>
+            </div>
+            <!-- Content list screen -->
+            <div class="pscreen" id="ps-content">
+              <div class="portal-head">
+                <button class="pback" onclick="phoneScreen('portal')">‹ Eğitim Merkezi</button>
+                <b id="content-title">Eğitim Videoları</b>
+                <span id="content-sub"></span>
+              </div>
+              <div class="content-list" id="content-list" style="overflow-y:auto"></div>
+            </div>
+            <!-- Quiz screen -->
+            <div class="pscreen" id="ps-quiz">
+              <div class="portal-head">
+                <button class="pback" onclick="phoneScreen('portal')">‹ Eğitim Merkezi</button>
+                <b>Bilgi Testi</b>
+                <span>Eğitimi pekiştirin — 3 soru</span>
+              </div>
+              <div class="content-list" id="quiz-list" style="overflow-y:auto"></div>
+            </div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="card">
+            <h2>Bu ekranda ne oluyor?</h2>
+            <div class="step-note"><span class="n">1</span><div>HBYS'de taburculuk yapılınca SMS <b>otomatik</b> gönderilir — personel iş yükü oluşturmaz.</div></div>
+            <div class="step-note"><span class="n">2</span><div>Bağlantı, hastanın <b>tanısına özel</b> eğitim merkezini açar. SMS silinse bile QR kodlu kartla erişim sürer.</div></div>
+            <div class="step-note"><span class="n">3</span><div>Görüntüleme ve test sonuçları HBYS'ye <b>kalite göstergesi</b> olarak işlenir.</div></div>
+          </div>
+          <div class="card">
+            <h2>Tanıya göre içerik</h2>
+            <p style="font-size:13px;color:var(--ink-2);margin-top:4px">Platform tüm tanı gruplarını destekler. Demo için farklı bir tanı seçin:</p>
+            <div class="diag-chips" id="diag-chips"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ASISTAN ============ -->
+    <section class="view" id="view-asistan">
+      <div class="view-head">
+        <div class="eyebrow">Adım 3 · Hasta</div>
+        <h1>Yapay Zeka Hasta Asistanı</h1>
+        <p>Hasta 7/24 soru sorabilir. Asistan onaylı eğitim içeriklerinden yanıt verir; riskli ifadelerde konuşmayı sağlık ekibine taşır. <b>Hazır sorulara tıklayın veya kendi mesajınızı yazın.</b></p>
+      </div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-notch"><span>14:41</span><span>▮▮▮ 🔋</span></div>
+            <div class="sms-head"><div class="sms-avatar" style="background:var(--navy)">AI</div><div><b>ADHEP Asistan</b><span style="color:var(--good)">● çevrimiçi</span></div></div>
+            <div class="chat-body" id="chat-body">
+              <div class="msg bot">Merhaba Ahmet Bey 👋 Ben ADHEP sağlık asistanınızım. KOAH eğitim içerikleriniz hakkında soru sorabilirsiniz. Acil bir durumda lütfen 112'yi arayın.</div>
+            </div>
+            <div class="typing" id="typing"><i></i><i></i><i></i></div>
+            <div class="chat-chips" id="chat-chips"></div>
+            <div class="chat-input">
+              <input id="chat-input" placeholder="Mesaj yazın…" onkeydown="if(event.key==='Enter')sendChat()">
+              <button class="btn btn-primary btn-sm" onclick="sendChat()">Gönder</button>
+            </div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="card">
+            <h2>Güvenlik kurgusu</h2>
+            <div class="step-note"><span class="n">✓</span><div>Yanıtlar yalnızca <b>klinik ekipçe onaylanmış</b> eğitim havuzundan üretilir; asistan tanı koymaz, ilaç önermez.</div></div>
+            <div class="step-note"><span class="n">!</span><div>"Nefesim daralıyor" gibi riskli ifadeler algılandığında hasta yönlendirilir ve <b>hemşire ekranına acil bildirim</b> düşer.</div></div>
+            <div class="step-note"><span class="n">⏱</span><div>Tüm konuşmalar KVKK kapsamında şifrelenir ve hasta dosyasıyla ilişkilendirilir.</div></div>
+          </div>
+          <div class="card">
+            <h2>Test konuşması önerisi</h2>
+            <p style="font-size:13px;color:var(--ink-2);margin-top:4px">Sunumda sırasıyla deneyin:</p>
+            <div class="step-note"><span class="n">1</span><div>"KOAH nedir?" — bilgilendirme yanıtı</div></div>
+            <div class="step-note"><span class="n">2</span><div>"İnhalerimi nasıl kullanırım?" — adımlar + video kartı</div></div>
+            <div class="step-note"><span class="n">3</span><div>"Nefesim çok daralıyor" — <b>acil akışı</b>: uyarı hemşire paneline düşer</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAKIP ============ -->
+    <section class="view" id="view-takip">
+      <div class="view-head">
+        <div class="eyebrow">Adım 4 · Takip</div>
+        <h1>Taburculuk Sonrası Dijital Takip</h1>
+        <p>Sistem 3., 7., 15. ve 30. günlerde kısa anket SMS'leri gönderir. Riskli yanıtlar anında hemşire ekranına düşer. <b>Hasta adına yanıt vererek akışı deneyin.</b></p>
+      </div>
+      <div class="takip-grid">
+        <div class="card">
+          <h2 style="margin-bottom:16px">Takip Zaman Çizelgesi — Ahmet Yılmaz</h2>
+          <div id="takip-timeline"></div>
+          <button class="btn btn-ghost btn-sm" onclick="resetTakip()" style="margin-top:6px">↺ Anketleri sıfırla</button>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <h2>Yanıt değerlendirme mantığı</h2>
+            <div class="step-note"><span class="chip chip-normal">Normal</span><div>Takip planı değişmeden sürer.</div></div>
+            <div class="step-note"><span class="chip chip-riskli">Riskli</span><div>Hemşire ekranına uyarı düşer; hasta 24 saat içinde aranır.</div></div>
+            <div class="step-note"><span class="chip chip-acil">Acil</span><div>İlgili kliniğe anında bildirim gider; hasta 112 / acile yönlendirilir.</div></div>
+          </div>
+          <div class="card">
+            <h2>Neden önemli?</h2>
+            <p style="font-size:13.5px;color:var(--ink-2);margin-top:6px">KOAH alevlenmelerinin çoğu, hastaneye başvurudan günler önce belirti verir. Yapılandırılmış sorular bu belirtileri <b>evdeyken</b> yakalar; gereksiz acil başvurularını azaltırken gerçek riskleri erken görünür kılar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RISK ============ -->
+    <section class="view" id="view-risk">
+      <div class="view-head">
+        <div class="eyebrow">Adım 5 · Yapay Zeka</div>
+        <h1>Alevlenme Risk Analizi — Ahmet Yılmaz</h1>
+        <p>Yapay zekâ; vital bulgular, semptom skorları, ilaç uyumu ve aktivite verilerini birlikte analiz ederek alevlenme riskini <b>klinik kötüleşme başlamadan önce</b> öngörür.</p>
+      </div>
+      <div class="risk-top">
+        <div class="card risk-gauge-card">
+          <h3 style="font-size:13px;color:var(--ink-2)">Alevlenme Risk Skoru</h3>
+          <div class="gauge-wrap">
+            <div class="risk-ring-anim"></div>
+            <svg width="190" height="190" viewBox="0 0 190 190">
+              <circle class="gauge-bg" cx="95" cy="95" r="82"/>
+              <circle class="gauge-val" id="gauge-val" cx="95" cy="95" r="82"/>
+            </svg>
+            <div class="gauge-center"><b id="gauge-num">0%</b><span>72 saatlik öngörü</span></div>
+          </div>
+          <span class="chip chip-acil risk-level" id="risk-level">YÜKSEK RİSK</span>
+          <p style="font-size:12px;color:var(--muted);margin-top:10px">Tahmini alevlenme penceresi: <b>3–5 gün</b></p>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:6px">Model neden uyardı? <span class="chip chip-info" style="margin-left:6px">Açıklanabilir YZ</span></h2>
+          <div class="factor"><span class="f-ico f-crit">▼</span><div><b>SpO₂ son 7 günde %94 → %87</b><span>Süreğen düşüş eğilimi — en güçlü risk göstergesi.</span></div></div>
+          <div class="factor"><span class="f-ico f-crit">▲</span><div><b>Semptom skoru (CAT) 12 → 24</b><span>Nefes darlığı ve balgam şikâyetlerinde belirgin artış.</span></div></div>
+          <div class="factor"><span class="f-ico f-warn">◆</span><div><b>İlaç uyumu %60'a geriledi</b><span>Son 5 günde 4 inhaler dozu atlandı.</span></div></div>
+          <div class="factor"><span class="f-ico f-warn">▼</span><div><b>Günlük adım sayısı %45 azaldı</b><span>Aktivite düşüşü, kötüleşmenin erken davranışsal işareti.</span></div></div>
+        </div>
+      </div>
+      <div class="charts-3">
+        <div class="card chart-card"><h3>SpO₂ — 14 günlük seyir</h3><div class="cur">87<small> %</small></div><div class="chart-box" id="chart-spo2"></div></div>
+        <div class="card chart-card"><h3>Nabız — 14 günlük seyir</h3><div class="cur">96<small> atım/dk</small></div><div class="chart-box" id="chart-nabiz"></div></div>
+        <div class="card chart-card"><h3>Semptom skoru (CAT)</h3><div class="cur">24<small> / 40</small></div><div class="chart-box" id="chart-cat"></div></div>
+      </div>
+      <div class="card alert-feed">
+        <h2 style="margin-bottom:6px">Erken uyarı zinciri</h2>
+        <div class="factor"><span class="f-ico">1</span><div><b>09.07.2026 · 06:00 — Risk skoru %70 eşiğini aştı</b><span>Model, gece ölçümleriyle birlikte riski yeniden hesapladı.</span></div></div>
+        <div class="factor"><span class="f-ico">2</span><div><b>06:01 — Hemşire paneline acil uyarı düştü</b><span>Koordinatör Hemşire Tuba Bodur'a ve Dr. Elif Kara'ya bildirim gönderildi.</span></div></div>
+        <div class="factor"><span class="f-ico">3</span><div><b>09:15 — Hasta arandı, aynı gün polikliniğe çağrıldı</b><span>Olası yatış, erken müdahale ile önlendi. Tüm süreç kalite kaydına işlendi.</span></div></div>
+      </div>
+    </section>
+
+    <!-- ============ HEMSIRE ============ -->
+    <section class="view" id="view-hemsire">
+      <div class="view-head">
+        <div class="eyebrow">Adım 6 · Klinik</div>
+        <h1>Hemşire Takip Paneli</h1>
+        <p>Riskli anket yanıtları, asistan acil mesajları ve yapay zekâ erken uyarıları tek kuyrukta toplanır; ekip önceliğe göre aksiyon alır.</p>
+      </div>
+      <div class="mini-stats">
+        <div class="card"><b id="stat-active">3</b><span>Aktif uyarı</span></div>
+        <div class="card"><b>12</b><span>Bugün aranan hasta</span></div>
+        <div class="card"><b>18 dk</b><span>Ortalama müdahale süresi</span></div>
+      </div>
+      <div class="card">
+        <table class="alerts">
+          <thead><tr><th>Öncelik</th><th>Hasta</th><th>Kaynak</th><th>Saat</th><th style="text-align:right">Aksiyon</th></tr></thead>
+          <tbody id="alert-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ YONETIM ============ -->
+    <section class="view" id="view-yonetim">
+      <div class="view-head">
+        <div class="eyebrow">Adım 7 · Yönetim</div>
+        <h1>Yönetim Gösterge Paneli</h1>
+        <p>Eğitim gönderim, erişim ve tamamlama oranları kalite göstergesi olarak izlenir; Sağlık Bakanlığı kalite standartlarına raporlanabilir.</p>
+      </div>
+      <div class="kpi-row">
+        <div class="card kpi"><span class="lbl">Gönderilen SMS</span><b>12.450</b><span class="delta up">↑ %14 (son 6 ay)</span></div>
+        <div class="card kpi"><span class="lbl">Eğitime erişen hasta</span><b>8.230</b><span class="delta up">%66 erişim oranı</span></div>
+        <div class="card kpi"><span class="lbl">Eğitimi tamamlayan</span><b>6.450</b><span class="delta up">%52 tamamlama</span></div>
+        <div class="card kpi"><span class="lbl">30 günlük tekrar başvuru</span><b>%18 ↓</b><span class="delta down">pilot servislerde azalma</span></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card chart-card">
+          <h3>Aylık eğitim erişim oranı (%)</h3>
+          <div class="chart-box" id="chart-aylik"></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Tanı gruplarına göre eğitim dağılımı</h3>
+          <div class="chart-box" id="chart-tani" style="margin-top:14px"></div>
+        </div>
+      </div>
+      <div class="dash-grid">
+        <div class="card chart-card">
+          <h3>En çok erişilen içerik türleri (görüntülenme)</h3>
+          <div class="chart-box" id="chart-icerik" style="margin-top:14px"></div>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:8px">Kalite göstergeleri</h2>
+          <div class="factor"><span class="f-ico" style="background:#e7f4e7;color:var(--good-text)">✓</span><div><b>SMS yanıt oranı: %74</b><span>Takip anketlerine dönüş.</span></div></div>
+          <div class="factor"><span class="f-ico" style="background:#e7f4e7;color:var(--good-text)">✓</span><div><b>Hasta memnuniyet skoru: 4,6 / 5</b><span>Eğitim sonrası mini anket.</span></div></div>
+          <div class="factor"><span class="f-ico" style="background:#e7f4e7;color:var(--good-text)">✓</span><div><b>Riskli yanıta müdahale: ort. 18 dk</b><span>Uyarı → hasta araması.</span></div></div>
+        </div>
+      </div>
+      <div class="kvkk">🔒 KVKK ve Kişisel Veri Güvenliği kapsamında tüm veriler şifrelenerek güvenli şekilde iletilir ve saklanır. Bu panel temsili demo verisi göstermektedir.</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Story bar -->
+<div id="storybar">
+  <div class="sb-top">
+    <span class="sb-step" id="sb-step">ADIM 1 / 9</span>
+    <button class="sb-close" onclick="closeStory()" aria-label="Kapat">✕</button>
+  </div>
+  <div class="sb-text" id="sb-text"></div>
+  <div class="sb-nav">
+    <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff" onclick="storyPrev()">‹ Önceki</button>
+    <button class="btn btn-sm btn-primary" onclick="storyNext()" id="sb-next">Sonraki ›</button>
+    <div class="sb-dots" id="sb-dots"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="tip"></div>
+
+<script>
+/* =================== DATA =================== */
+const PATIENTS = [
+  {id:'ahmet', ad:'Ahmet YILMAZ', yas:67, icd:'J44.1', tani:'KOAH (akut alevlenme ile)', tel:'0555 XXX 12 34', servis:'Göğüs Hastalıkları', key:'koah'},
+  {id:'ayse',  ad:'Ayşe ŞAHİN',   yas:34, icd:'J45.9', tani:'Astım', tel:'0532 XXX 45 67', servis:'Göğüs Hastalıkları', key:'astim'},
+  {id:'fatma', ad:'Fatma DEMİR',  yas:58, icd:'E11.9', tani:'Tip 2 Diyabet', tel:'0505 XXX 89 01', servis:'Dahiliye', key:'diyabet'},
+  {id:'mehmet',ad:'Mehmet KAYA',  yas:61, icd:'I10',   tani:'Esansiyel Hipertansiyon', tel:'0542 XXX 23 45', servis:'Dahiliye', key:'hipertansiyon'},
+  {id:'osman', ad:'Osman AYDIN',  yas:72, icd:'I50.9', tani:'Kalp Yetmezliği', tel:'0533 XXX 67 89', servis:'Kardiyoloji', key:'kalp'},
+];
+
+const EDU = {
+  koah: {
+    ad:'KOAH', icd:'J44.1', title:'KOAH Hasta Eğitim Merkezi',
+    paket:['İnhaler cihaz kullanımı','Nefes egzersizleri','Sigara bırakma önerileri','Beslenme ve egzersiz','Acil durumda yapılacaklar'],
+    videos:[
+      {t:'İnhaler Cihaz Kullanımı', d:'3:24', m:'12.480 izlenme'},
+      {t:'Büzük Dudak Nefes Egzersizi', d:'4:10', m:'8.960 izlenme'},
+      {t:'Sigarayı Bırakmanın Yolları', d:'5:02', m:'7.320 izlenme'},
+      {t:'KOAH ile Günlük Yaşam', d:'6:15', m:'5.140 izlenme'},
+    ],
+    faq:[
+      {q:'KOAH tamamen iyileşir mi?', a:'KOAH kronik bir hastalıktır; tamamen geçmez ancak düzenli tedavi ve sigarayı bırakmakla ilerlemesi büyük ölçüde yavaşlatılabilir.'},
+      {q:'İnhalerimi ne zaman kullanmalıyım?', a:'Koruyucu inhalerinizi her gün aynı saatlerde, rahatlatıcı inhalerinizi nefes darlığı hissettiğinizde doktorunuzun önerdiği dozda kullanın.'},
+      {q:'Hangi durumda acile gitmeliyim?', a:'Dinlenirken bile geçmeyen nefes darlığı, morarma, bilinç bulanıklığı veya balgamda kan görürseniz vakit kaybetmeden 112yi arayın.'},
+    ],
+    beslenme:[
+      {q:'Küçük ve sık öğünler', a:'Dolu mide diyaframa baskı yapar; günde 5-6 küçük öğün nefes almayı kolaylaştırır.'},
+      {q:'Bol sıvı tüketin', a:'Günde 6-8 bardak su balgamın yumuşamasına yardımcı olur.'},
+      {q:'Gazlı içeceklerden kaçının', a:'Şişkinlik nefes darlığını artırabilir.'},
+    ],
+  },
+  astim: {
+    ad:'Astım', icd:'J45.9', title:'Astım Hasta Eğitim Merkezi',
+    paket:['Atak yönetimi planı','Tetikleyicilerden korunma','İnhaler tekniği','Pik akım ölçümü'],
+    videos:[
+      {t:'Astım Atağında İlk 5 Dakika', d:'2:58', m:'9.240 izlenme'},
+      {t:'Tetikleyicileri Tanıyın', d:'4:31', m:'6.180 izlenme'},
+    ],
+    faq:[
+      {q:'Atak anında ne yapmalıyım?', a:'Sakin kalın, dik oturun, rahatlatıcı inhalerinizi kullanın. 10 dakikada düzelme olmazsa tekrarlayın ve 112yi arayın.'},
+      {q:'Sporu bırakmalı mıyım?', a:'Hayır — kontrol altındaki astımda düzenli egzersiz önerilir. Egzersiz öncesi doktorunuzun önerdiği korumayı uygulayın.'},
+    ],
+    beslenme:[{q:'Alerjen takibi', a:'Bilinen gıda alerjileriniz varsa etiketleri dikkatle okuyun.'}],
+  },
+  diyabet: {
+    ad:'Diyabet', icd:'E11.9', title:'Diyabet Hasta Eğitim Merkezi',
+    paket:['Beslenme planı','Kan şekeri takibi','İnsülin kullanımı','Ayak bakımı'],
+    videos:[
+      {t:'Evde Kan Şekeri Ölçümü', d:'3:12', m:'11.020 izlenme'},
+      {t:'İnsülin Kalemi Kullanımı', d:'4:45', m:'8.870 izlenme'},
+      {t:'Diyabette Ayak Bakımı', d:'3:50', m:'6.410 izlenme'},
+    ],
+    faq:[
+      {q:'Açlık kan şekerim kaç olmalı?', a:'Hedef değerler kişiye göre değişir; genel hedef 80-130 mg/dL aralığıdır. Doktorunuzun size verdiği hedefi esas alın.'},
+      {q:'Hipoglisemi belirtileri nelerdir?', a:'Titreme, terleme, çarpıntı ve ani açlık. Böyle bir durumda 15 gr hızlı emilen karbonhidrat alın ve 15 dk sonra tekrar ölçün.'},
+    ],
+    beslenme:[{q:'Tabak modeli', a:'Tabağınızın yarısı sebze, çeyreği protein, çeyreği tam tahıl olacak şekilde planlayın.'}],
+  },
+  hipertansiyon: {
+    ad:'Hipertansiyon', icd:'I10', title:'Hipertansiyon Eğitim Merkezi',
+    paket:['Tuz kısıtlaması','Evde tansiyon ölçümü','İlaç uyumu','Egzersiz planı'],
+    videos:[
+      {t:'Evde Doğru Tansiyon Ölçümü', d:'2:40', m:'10.150 izlenme'},
+      {t:'Tuzu Azaltmanın Pratik Yolları', d:'3:33', m:'7.890 izlenme'},
+    ],
+    faq:[
+      {q:'İlacımı ne zaman içmeliyim?', a:'Her gün aynı saatte. Kendinizi iyi hissetseniz bile ilacınızı doktorunuza danışmadan bırakmayın.'},
+    ],
+    beslenme:[{q:'Günlük tuz < 5 gr', a:'Sofrada tuzluk bulundurmayın; işlenmiş gıdaların etiketindeki sodyum değerini kontrol edin.'}],
+  },
+  kalp: {
+    ad:'Kalp Yetmezliği', icd:'I50.9', title:'Kalp Yetmezliği Eğitim Merkezi',
+    paket:['Günlük kilo takibi','Sıvı kısıtlaması','İlaç uyumu','Belirti günlüğü'],
+    videos:[
+      {t:'Neden Her Sabah Tartılmalıyım?', d:'2:25', m:'5.630 izlenme'},
+      {t:'Sıvı Kısıtlamasında Pratik İpuçları', d:'3:18', m:'4.210 izlenme'},
+    ],
+    faq:[
+      {q:'Kilo artışı neden önemli?', a:'3 günde 2 kilodan fazla artış vücutta sıvı birikimini gösterebilir — bu durumda ekibinizi arayın.'},
+    ],
+    beslenme:[{q:'Sıvı takibi', a:'Doktorunuzun önerdiği günlük sıvı sınırını ölçekli şişeyle takip edin.'}],
+  },
+};
+
+const QUIZ = [
+  {q:'1. İnhaler cihazınızı kullanmadan önce ilk yapmanız gereken nedir?',
+   opts:['Cihazı iyice çalkalamak','Derin nefes alıp tutmak','Hemen ağzınıza götürüp sıkmak'], correct:0,
+   fb:'Doğru! Ölçülü doz inhalerler kullanımdan önce 4-5 kez çalkalanmalıdır.'},
+  {q:'2. KOAH tedavisinde en önemli tek adım hangisidir?',
+   opts:['Vitamin takviyesi almak','Sigarayı tamamen bırakmak','Yatak istirahati yapmak'], correct:1,
+   fb:'Doğru! Sigarayı bırakmak hastalığın ilerlemesini yavaşlatan en etkili adımdır.'},
+  {q:'3. Nefes darlığınız aniden ve şiddetli şekilde artarsa ne yapmalısınız?',
+   opts:['Bir sonraki randevuyu beklemek','Rahatlatıcı inhaleri kullanıp düzelmezse 112yi aramak','Ağrı kesici almak'], correct:1,
+   fb:'Doğru! Rahatlatıcı inhaler sonrası düzelme yoksa vakit kaybetmeden 112 aranmalıdır.'},
+];
+
+const CHAT_SCRIPT = [
+  {keys:['koah nedir','koah ne'], chip:'KOAH nedir?', reply:'KOAH (Kronik Obstrüktif Akciğer Hastalığı), akciğerlerdeki hava yollarının daralması sonucu nefes almanın zorlaştığı kronik bir hastalıktır. En sık nedeni sigara dumanıdır. Düzenli ilaç kullanımı, nefes egzersizleri ve sigaradan uzak durmakla günlük yaşam kalitesi büyük ölçüde korunabilir. 📚 Eğitim merkezinizde "KOAH ile Günlük Yaşam" videosunu izleyebilirsiniz.'},
+  {keys:['inhaler','nasıl kullan'], chip:'İnhalerimi nasıl kullanırım?', reply:'İnhaler kullanım adımları:<br>1️⃣ Cihazı 4-5 kez çalkalayın<br>2️⃣ Nefesinizi tamamen verin<br>3️⃣ Ağızlığı dudaklarınızla kavrayın<br>4️⃣ Yavaşça nefes alırken cihaza bir kez basın<br>5️⃣ Nefesinizi 10 saniye tutun', video:'▶ İnhaler Cihaz Kullanımı (3:24)'},
+  {keys:['beslenme','yemek','ne yiyeyim'], chip:'Beslenmede nelere dikkat etmeliyim?', reply:'KOAH\'ta beslenme önerileri: Günde 5-6 küçük öğün tercih edin (dolu mide nefes almayı zorlaştırır), bol sıvı tüketin (balgamı yumuşatır), gazlı içeceklerden kaçının. Kilonuzu düzenli takip edin — istenmeyen kilo kaybı ekibinize bildirilmelidir.'},
+  {keys:['egzersiz','yürüyüş','spor'], chip:'Egzersiz yapabilir miyim?', reply:'Evet! Düzenli hafif egzersiz KOAH\'ta nefes kapasitesini korur. Günde 20-30 dakika tempolu yürüyüş ve büzük dudak nefes egzersizleri önerilir. Egzersiz sırasında konuşamayacak kadar nefessiz kalıyorsanız yavaşlayın. 📚 "Büzük Dudak Nefes Egzersizi" videosuna göz atın.'},
+];
+const EMERGENCY_KEYS = ['daral','nefes alam','boğul','çok kötü','acil','morar'];
+
+const ALERTS_INIT = [
+  {sev:'acil', hasta:'Ahmet YILMAZ', kaynak:'YZ Erken Uyarı — alevlenme risk skoru %78', saat:'06:01'},
+  {sev:'riskli', hasta:'Ayşe ŞAHİN', kaynak:'Gün 3 anketi — "nefes darlığım arttı" yanıtı', saat:'09:40'},
+  {sev:'riskli', hasta:'Osman AYDIN', kaynak:'Kilo takibi — 3 günde +2,1 kg artış', saat:'11:12'},
+];
+
+/* =================== STATE =================== */
+let currentDiag = 'koah';
+let smsSent = false;
+let selectedPatient = null;
+let nurseAlerts = 0;
+
+/* =================== NAV =================== */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===id));
+  if(id==='hemsire'){ clearNurseBadge(); }
+  if(id==='risk'){ animateRisk(); }
+  if(id==='yonetim'){ drawDashboard(); }
+  window.scrollTo({top:0});
+}
+
+/* =================== TOAST =================== */
+function toast(msg, cls=''){
+  const t=document.createElement('div');
+  t.className='toast '+cls;
+  t.innerHTML=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(()=>t.remove(),400)},4200);
+}
+
+/* =================== HBYS =================== */
+function initHbys(){
+  const tb=document.getElementById('hbys-rows');
+  tb.innerHTML = PATIENTS.map(p=>
+    `<tr class="row" id="hb-${p.id}" onclick="selectPatient('${p.id}')">
+      <td><b>${p.ad}</b></td><td>${p.yas}</td><td><span class="icd">${p.icd}</span></td><td>${p.tani}</td>
+    </tr>`).join('');
+}
+function selectPatient(id){
+  selectedPatient = PATIENTS.find(p=>p.id===id);
+  document.querySelectorAll('.hbys-table tr.row').forEach(r=>r.classList.toggle('selected', r.id==='hb-'+id));
+  const e = EDU[selectedPatient.key];
+  document.getElementById('hbys-detail').innerHTML = `
+    <div class="hbys-field"><label>Hasta Adı</label><b>${selectedPatient.ad}</b></div>
+    <div class="hbys-field"><label>TC Kimlik No</label>123****8910</div>
+    <div class="hbys-field"><label>Tanı (ICD)</label><span class="icd">${selectedPatient.icd}</span>&nbsp; ${selectedPatient.tani}</div>
+    <div class="hbys-field"><label>Servis</label>${selectedPatient.servis}</div>
+    <div class="hbys-field"><label>Telefon</label>${selectedPatient.tel}</div>
+    <div class="edu-pack">
+      <h4>⚙ ADHEP — tanıya uygun eğitim paketi otomatik seçildi</h4>
+      <ul>${e.paket.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="hbys-actions">
+      <button class="btn btn-primary" onclick="discharge()">Taburcu Et ve Eğitim SMS'i Gönder</button>
+    </div>
+    <div class="sms-log" id="sms-log"></div>`;
+}
+function discharge(){
+  if(!selectedPatient) return;
+  const log=document.getElementById('sms-log');
+  log.classList.add('show');
+  log.innerHTML='';
+  const lines=[
+    '> taburculuk kaydı oluşturuldu ['+selectedPatient.icd+']',
+    '> eğitim havuzu eşleştirildi: '+EDU[selectedPatient.key].ad+' paketi',
+    '> SMS gateway → '+selectedPatient.tel,
+    '> DURUM: GÖNDERİLDİ ✓ (14:32:07)'
+  ];
+  lines.forEach((l,i)=>setTimeout(()=>{log.innerHTML+=l+'<br>'},i*450));
+  setTimeout(()=>{
+    toast('📩 <b>Eğitim SMS\'i gönderildi</b><br>'+selectedPatient.ad+' — '+EDU[selectedPatient.key].ad+' paketi. "Hasta Telefonu" ekranından görüntüleyin.','t-good');
+    if(selectedPatient.key==='koah'){ smsSent=true; renderSms(); }
+  }, lines.length*450+200);
+}
+
+/* =================== PHONE / SMS =================== */
+function phoneScreen(s){
+  document.querySelectorAll('#view-telefon .pscreen').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ps-'+s).classList.add('active');
+}
+function sendSms(){ smsSent=true; renderSms(); }
+function renderSms(){
+  if(!smsSent) return;
+  const e = EDU[currentDiag];
+  document.getElementById('sms-body').innerHTML = `
+    <div class="sms-bubble">
+      Sayın Ahmet YILMAZ,<br><br>
+      ${e.ad} hastalığınız nedeniyle hazırlanan hasta eğitim sayfasına aşağıdaki bağlantıdan ulaşabilirsiniz:<br><br>
+      ${e.paket.slice(0,4).map(p=>'• '+p).join('<br>')}<br><br>
+      <span class="sms-link" onclick="openPortal()">https://egitim.sureyyapasa.gov.tr/k/${e.icd.replace('.','')}-4F7A2</span><br><br>
+      Sağlıklı günler dileriz.<br>Süreyyapaşa Göğüs Hastalıkları ve Göğüs Cerrahisi EAH
+      <div class="sms-time">Bugün 14:32 · Kurumsal SMS</div>
+    </div>`;
+}
+function openPortal(){
+  renderPortal();
+  phoneScreen('portal');
+}
+const TILES = [
+  {ico:'▶', bg:'#e3eef2', c:'#0f6f8c', t:'Eğitim Videoları', s:'4 video', act:'videos'},
+  {ico:'📄', bg:'#efeaf7', c:'#4a3aa7', t:'Broşür / PDF', s:'3 doküman', act:'pdf'},
+  {ico:'🔊', bg:'#fdf1e0', c:'#8a5a00', t:'Sesli Anlatım', s:'okuma bilmeyenler için', act:'audio'},
+  {ico:'❓', bg:'#e3eef2', c:'#0f6f8c', t:'Sık Sorulan Sorular', s:'uzman yanıtları', act:'faq'},
+  {ico:'🥗', bg:'#e7f4e7', c:'#006300', t:'Beslenme Önerileri', s:'pratik öneriler', act:'beslenme'},
+  {ico:'🏃', bg:'#e7f4e7', c:'#006300', t:'Egzersiz Videoları', s:'evde uygulanabilir', act:'videos'},
+  {ico:'💊', bg:'#efeaf7', c:'#4a3aa7', t:'İlaç Kullanımı', s:'doz ve zamanlar', act:'faq'},
+  {ico:'🚨', bg:'#fbe4e4', c:'#9c2323', t:'Acil Durum Bilgileri', s:'ne zaman 112?', act:'faq'},
+];
+function renderPortal(){
+  const e = EDU[currentDiag];
+  document.getElementById('portal-title').textContent = e.title;
+  document.getElementById('portal-diag-tag').textContent = e.icd+' · '+e.ad;
+  document.getElementById('tile-grid').innerHTML = TILES.map(t=>
+    `<div class="tile" onclick="openContent('${t.act}','${t.t}')">
+      <div class="t-ico" style="background:${t.bg};color:${t.c}">${t.ico}</div>
+      <b>${t.t}</b><span>${t.s}</span></div>`).join('');
+}
+function openContent(act, title){
+  const e = EDU[currentDiag];
+  const el = document.getElementById('content-list');
+  document.getElementById('content-title').textContent = title;
+  document.getElementById('content-sub').textContent = e.ad+' eğitim içeriği';
+  if(act==='videos'){
+    el.innerHTML = e.videos.map((v,i)=>
+      `<div class="video-card" onclick="playVideo(this)">
+        <div class="video-thumb"><div class="play">▶</div><span class="dur">${v.d}</span></div>
+        <div class="video-progress"><i></i></div>
+        <b>${v.t}</b><div class="vmeta">${v.m} · Süreyyapaşa EAH onaylı içerik</div>
+      </div>`).join('');
+  } else if(act==='faq'){
+    el.innerHTML = e.faq.map(f=>`<div class="faq-item"><b>${f.q}</b><span>${f.a}</span></div>`).join('');
+  } else if(act==='beslenme'){
+    el.innerHTML = e.beslenme.map(f=>`<div class="faq-item"><b>${f.q}</b><span>${f.a}</span></div>`).join('');
+  } else if(act==='pdf'){
+    el.innerHTML = e.paket.map(p=>`<div class="faq-item"><b>📄 ${p}.pdf</b><span>2 sayfa · büyük punto sürümü mevcut · yazdırılabilir</span></div>`).join('');
+  } else if(act==='audio'){
+    el.innerHTML = e.paket.slice(0,3).map(p=>`<div class="faq-item"><b>🔊 ${p}</b><span>▶ ─────●───── 2:40 · sesli anlatım</span></div>`).join('');
+  }
+  phoneScreen('content');
+}
+function playVideo(card){
+  const bar = card.querySelector('.video-progress i');
+  bar.style.width='100%';
+  toast('▶ Video oynatılıyor — <b>görüntüleme HBYS kalite kaydına işlendi</b>');
+}
+function renderQuiz(){
+  const el=document.getElementById('quiz-list');
+  el.innerHTML = QUIZ.map((q,qi)=>
+    `<div class="quiz-q" id="qq-${qi}"><b>${q.q}</b>
+      ${q.opts.map((o,oi)=>`<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${o}</button>`).join('')}
+      <div class="tl-result" id="qfb-${qi}" style="font-size:12px"></div>
+    </div>`).join('') +
+    `<div class="quiz-done" id="quiz-done">🎉 <b>Tebrikler, eğitimi tamamladınız!</b><br>Sonucunuz hasta dosyanıza ve hastane kalite göstergelerine işlendi.</div>`;
+}
+let quizAnswered = new Set();
+function answerQuiz(qi, oi){
+  const q=QUIZ[qi];
+  const box=document.getElementById('qq-'+qi);
+  box.querySelectorAll('.quiz-opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.correct) b.classList.add('correct');
+    else if(i===oi) b.classList.add('wrong');
+  });
+  const fb=document.getElementById('qfb-'+qi);
+  fb.classList.add('show');
+  fb.style.color = oi===q.correct ? 'var(--good-text)' : '#9c2323';
+  fb.textContent = oi===q.correct ? q.fb : 'Doğru yanıt işaretlendi. '+q.fb.replace('Doğru! ','');
+  quizAnswered.add(qi);
+  if(quizAnswered.size===QUIZ.length){
+    document.getElementById('quiz-done').classList.add('show');
+    toast('📝 <b>Bilgi testi tamamlandı</b> — sonuç kalite paneline yansıdı.','t-good');
+  }
+}
+function initDiagChips(){
+  document.getElementById('diag-chips').innerHTML = Object.entries(EDU).map(([k,e])=>
+    `<button class="diag-chip ${k===currentDiag?'active':''}" id="dc-${k}" onclick="setDiag('${k}')">${e.ad}</button>`).join('');
+}
+function setDiag(k){
+  currentDiag=k;
+  document.querySelectorAll('.diag-chip').forEach(c=>c.classList.toggle('active', c.id==='dc-'+k));
+  smsSent=true;
+  renderSms(); renderPortal();
+  phoneScreen('sms');
+  toast('İçerik değişti: <b>'+EDU[k].ad+'</b> eğitim paketi görüntüleniyor.');
+}
+
+/* =================== CHAT =================== */
+function initChat(){
+  document.getElementById('chat-chips').innerHTML =
+    CHAT_SCRIPT.map((c,i)=>`<button class="chat-chip" onclick="chipSend(${i})">${c.chip}</button>`).join('') +
+    `<button class="chat-chip" style="background:#fbe4e4;color:#9c2323" onclick="userSays('Nefesim çok daralıyor, ne yapmalıyım?')">Nefesim çok daralıyor</button>`;
+}
+function chipSend(i){ userSays(CHAT_SCRIPT[i].chip); }
+function sendChat(){
+  const inp=document.getElementById('chat-input');
+  if(!inp.value.trim()) return;
+  userSays(inp.value.trim());
+  inp.value='';
+}
+function userSays(text){
+  const body=document.getElementById('chat-body');
+  body.insertAdjacentHTML('beforeend', `<div class="msg user">${escapeHtml(text)}</div>`);
+  body.scrollTop=body.scrollHeight;
+  const typing=document.getElementById('typing');
+  typing.classList.add('show');
+  setTimeout(()=>{
+    typing.classList.remove('show');
+    botReply(text.toLowerCase());
+  }, 1100);
+}
+function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function botReply(low){
+  const body=document.getElementById('chat-body');
+  if(EMERGENCY_KEYS.some(k=>low.includes(k))){
+    body.insertAdjacentHTML('beforeend',
+      `<div class="msg alertmsg">⚠️ <b>Bu, acil değerlendirme gerektirebilecek bir durum.</b><br><br>
+      1. Sakin olun ve dik oturun.<br>2. Rahatlatıcı inhalerinizi kullanın.<br>3. 10 dakikada düzelme olmazsa <b>112'yi arayın</b>.<br><br>
+      🔔 Durumunuz Süreyyapaşa EAH takip ekibine iletildi — hemşireniz sizi kısa süre içinde arayacaktır.</div>`);
+    addNurseAlert('acil','Ahmet YILMAZ','YZ Asistan — acil mesaj: "nefesim çok daralıyor"');
+    toast('🔔 <b>Acil bildirim oluşturuldu</b> — hemşire panelinde görüntüleyin.','t-crit');
+  } else {
+    const hit = CHAT_SCRIPT.find(c=>c.keys.some(k=>low.includes(k)));
+    if(hit){
+      let html = `<div class="msg bot">${hit.reply}`;
+      if(hit.video) html += `<div class="mini-video">▶ &nbsp;${hit.video}</div>`;
+      html += `</div>`;
+      body.insertAdjacentHTML('beforeend', html);
+    } else {
+      body.insertAdjacentHTML('beforeend',
+        `<div class="msg bot">Bu sorunun yanıtı onaylı eğitim içeriklerimde bulunmuyor. Sorunuzu takip ekibinize ilettim — en geç 24 saat içinde dönüş yapılacaktır. 💬 Dilerseniz şunları sorabilirsiniz: <i>"KOAH nedir?", "İnhalerimi nasıl kullanırım?"</i></div>`);
+    }
+  }
+  body.scrollTop=body.scrollHeight;
+}
+
+/* =================== TAKIP =================== */
+const TAKIP = [
+  {gun:'3. Gün', q:'Nefes darlığınız arttı mı?', a1:'Evet', a2:'Hayır', riskyIf:0, riskMsg:'Gün 3 anketi — "nefes darlığım arttı" yanıtı'},
+  {gun:'7. Gün', q:'İlaçlarınızı düzenli kullanıyor musunuz?', a1:'Evet', a2:'Hayır', riskyIf:1, riskMsg:'Gün 7 anketi — ilaç uyumsuzluğu bildirimi'},
+  {gun:'15. Gün', q:'Kontrol randevunuzu aldınız mı?', a1:'Evet', a2:'Hayır', riskyIf:1, riskMsg:'Gün 15 anketi — kontrol randevusu alınmadı'},
+  {gun:'30. Gün', q:'Genel durumunuzu nasıl değerlendirirsiniz?', a1:'İyi', a2:'Kötü', riskyIf:1, riskMsg:'Gün 30 anketi — genel durum "kötü" yanıtı'},
+];
+let takipState = [];
+function resetTakip(){
+  takipState = TAKIP.map(()=>null);
+  renderTakip();
+}
+function renderTakip(){
+  document.getElementById('takip-timeline').innerHTML = TAKIP.map((t,i)=>{
+    const answered = takipState[i]!==null;
+    const locked = i>0 && takipState[i-1]===null;
+    const cls = answered?'done':(locked?'locked':'active');
+    let result='';
+    if(answered){
+      const risky = takipState[i]===t.riskyIf;
+      result = `<div class="tl-result show">${risky
+        ? '<span class="chip chip-riskli">Riskli yanıt</span> &nbsp;Hemşire ekranına uyarı iletildi.'
+        : '<span class="chip chip-normal">Normal</span> &nbsp;Takip planı devam ediyor.'}</div>`;
+    }
+    return `<div class="tl-item ${cls}">
+      <div class="tl-dot">${answered?'✓':i+1}</div>
+      <div class="tl-day">${t.gun} — otomatik SMS</div>
+      <div class="tl-q">${t.q}</div>
+      ${answered?result:(locked?'<div style="font-size:12px;color:var(--muted)">Önceki anket yanıtlanınca açılır</div>':
+        `<div class="tl-answers">
+          <button class="btn btn-ghost btn-sm" onclick="answerTakip(${i},0)">${t.a1}</button>
+          <button class="btn btn-ghost btn-sm" onclick="answerTakip(${i},1)">${t.a2}</button>
+        </div>`)}
+    </div>`;
+  }).join('');
+}
+function answerTakip(i, ans){
+  takipState[i]=ans;
+  if(ans===TAKIP[i].riskyIf){
+    addNurseAlert('riskli','Ahmet YILMAZ',TAKIP[i].riskMsg);
+    toast('⚠️ <b>Riskli yanıt algılandı</b> — hemşire paneline uyarı düştü.','t-crit');
+  }
+  renderTakip();
+}
+
+/* =================== RISK =================== */
+let riskAnimated=false;
+function animateRisk(){
+  drawRiskCharts();
+  const C = 2*Math.PI*82;
+  const g=document.getElementById('gauge-val');
+  g.style.strokeDasharray=C;
+  g.style.strokeDashoffset=C;
+  const target=78;
+  let cur=0;
+  const num=document.getElementById('gauge-num');
+  requestAnimationFrame(()=>{ g.style.strokeDashoffset = C*(1-target/100); });
+  const iv=setInterval(()=>{
+    cur+=2;
+    if(cur>=target){cur=target;clearInterval(iv);}
+    num.textContent=cur+'%';
+    num.style.color = cur>=70?'var(--critical)':(cur>=40?'#8a5a00':'var(--good-text)');
+  },28);
+}
+function drawRiskCharts(){
+  lineChart('chart-spo2',
+    [94,94,93,94,93,92,92,91,91,90,89,89,88,87],
+    {min:84,max:97,unit:'%',color:'#2a78d6',labels:d14()});
+  lineChart('chart-nabiz',
+    [76,78,77,80,79,82,84,83,86,88,90,92,94,96],
+    {min:70,max:100,unit:'',color:'#eda100',labels:d14()});
+  lineChart('chart-cat',
+    [12,12,13,13,14,15,16,17,18,19,21,22,23,24],
+    {min:8,max:28,unit:'',color:'#e34948',labels:d14()});
+}
+function d14(){
+  return ['26 Haz','27 Haz','28 Haz','29 Haz','30 Haz','1 Tem','2 Tem','3 Tem','4 Tem','5 Tem','6 Tem','7 Tem','8 Tem','9 Tem'];
+}
+
+/* =================== CHARTS (shared) =================== */
+const tip=document.getElementById('tip');
+function lineChart(elId, data, {min,max,unit,color,labels}){
+  const el=document.getElementById(elId);
+  const W=300,H=110,P=6;
+  const n=data.length;
+  const x=i=>P+i*(W-2*P)/(n-1);
+  const y=v=>H-P-(v-min)/(max-min)*(H-2*P);
+  let grid='';
+  for(let gi=1;gi<=2;gi++){
+    const gy=P+gi*(H-2*P)/3;
+    grid+=`<line x1="${P}" y1="${gy}" x2="${W-P}" y2="${gy}" stroke="#e1e0d9" stroke-width="1"/>`;
+  }
+  const pts=data.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const area=`${P},${H-P} ${pts} ${W-P},${H-P}`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block" id="${elId}-svg">
+    ${grid}
+    <polygon points="${area}" fill="${color}" opacity="0.09"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${x(n-1)}" cy="${y(data[n-1])}" r="4" fill="${color}" stroke="#fcfcfb" stroke-width="2"/>
+  </svg>`;
+  const svg=document.getElementById(elId+'-svg');
+  svg.addEventListener('mousemove',ev=>{
+    const r=svg.getBoundingClientRect();
+    const mx=(ev.clientX-r.left)/r.width*W;
+    let idx=Math.round((mx-P)/((W-2*P)/(n-1)));
+    idx=Math.max(0,Math.min(n-1,idx));
+    tip.style.display='block';
+    tip.style.left=(ev.clientX+12)+'px';
+    tip.style.top=(ev.clientY-30)+'px';
+    tip.textContent=`${labels[idx]}: ${data[idx]}${unit}`;
+  });
+  svg.addEventListener('mouseleave',()=>tip.style.display='none');
+}
+function hbars(elId, items, color, unit){
+  const el=document.getElementById(elId);
+  const mx=Math.max(...items.map(i=>i.v));
+  el.innerHTML=items.map(i=>
+    `<div class="hbar-row">
+      <span class="lbl">${i.l}</span>
+      <div class="hbar-track"><div class="hbar-fill" style="background:${i.c||color}" data-w="${(i.v/mx*100).toFixed(1)}%"></div></div>
+      <span class="val">${i.txt!==undefined?i.txt:i.v+unit}</span>
+    </div>`).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    el.querySelectorAll('.hbar-fill').forEach(f=>f.style.width=f.dataset.w);
+  }));
+}
+let dashDrawn=false;
+function drawDashboard(){
+  lineChart('chart-aylik',[58,61,63,64,66,68],
+    {min:50,max:75,unit:'%',color:'#2a78d6',labels:['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran']});
+  hbars('chart-tani',[
+    {l:'KOAH',v:28,c:'#2a78d6'},{l:'Diyabet',v:22,c:'#1baf7a'},{l:'Hipertansiyon',v:18,c:'#eda100'},
+    {l:'Kalp Yetmezliği',v:12,c:'#008300'},{l:'Astım',v:9,c:'#4a3aa7'},{l:'Diğer',v:11,c:'#898781'}],'', ' %');
+  hbars('chart-icerik',[
+    {l:'Video',v:32540,txt:'32.540'},{l:'SSS',v:21780,txt:'21.780'},
+    {l:'Broşür / PDF',v:18230,txt:'18.230'},{l:'Sesli anlatım',v:12660,txt:'12.660'}],'#2a78d6','');
+}
+
+/* =================== NURSE =================== */
+function initAlerts(){
+  const tb=document.getElementById('alert-rows');
+  tb.innerHTML = ALERTS_INIT.map(a=>alertRow(a)).join('');
+}
+function alertRow(a){
+  const chip = a.sev==='acil'?'chip-acil':(a.sev==='riskli'?'chip-riskli':'chip-normal');
+  const lbl = a.sev==='acil'?'ACİL':(a.sev==='riskli'?'RİSKLİ':'NORMAL');
+  return `<tr class="new-alert">
+    <td><span class="chip ${chip}">${lbl}</span></td>
+    <td><b>${a.hasta}</b></td>
+    <td class="alert-src">${a.kaynak}</td>
+    <td style="font-variant-numeric:tabular-nums">${a.saat}</td>
+    <td style="text-align:right;white-space:nowrap">
+      <button class="btn btn-ghost btn-sm">📞 Ara</button>
+      <button class="btn btn-ghost btn-sm" onclick="resolveAlert(this)">✓ Çözüldü</button>
+    </td></tr>`;
+}
+function addNurseAlert(sev,hasta,kaynak){
+  const now=new Date();
+  const saat=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('alert-rows').insertAdjacentHTML('afterbegin', alertRow({sev,hasta,kaynak,saat}));
+  nurseAlerts++;
+  const b=document.getElementById('nurse-badge');
+  b.textContent=nurseAlerts;
+  b.classList.add('show');
+  updateActive(1);
+}
+function clearNurseBadge(){
+  nurseAlerts=0;
+  document.getElementById('nurse-badge').classList.remove('show');
+}
+function resolveAlert(btn){
+  const tr=btn.closest('tr');
+  tr.classList.add('resolved');
+  btn.disabled=true;
+  updateActive(-1);
+  toast('✓ Uyarı çözüldü olarak işaretlendi — kalite kaydına işlendi.','t-good');
+}
+let activeCount=3;
+function updateActive(d){
+  activeCount=Math.max(0,activeCount+d);
+  document.getElementById('stat-active').textContent=activeCount;
+}
+
+/* =================== SCENARIOS =================== */
+function runScenario(n){
+  if(n===1){ showView('hbys'); selectPatient('ahmet'); setTimeout(()=>toast('▶ Senaryo S1: "Taburcu Et" düğmesine basın.'),400); }
+  if(n===2){ smsSent=true; renderSms(); showView('telefon'); setTimeout(()=>toast('▶ Senaryo S2: SMS içindeki bağlantıya dokunun.'),400); }
+  if(n===3){ showView('asistan'); setTimeout(()=>userSays('Nefesim çok daralıyor, ne yapmalıyım?'),800); }
+  if(n===4){ showView('takip'); resetTakip(); setTimeout(()=>toast('▶ Senaryo S4: 3. gün sorusuna "Evet" yanıtı verin.'),400); }
+  if(n===5){ showView('risk'); }
+}
+
+/* =================== STORY MODE =================== */
+const STORY = [
+  {view:'kapak', text:'👋 Süreyyapaşa EAH\'de bir gün: 67 yaşındaki KOAH hastası Ahmet Yılmaz taburcu ediliyor. Platformun onun için neler yaptığını adım adım izleyelim.'},
+  {view:'hbys', text:'1️⃣ Dr. Elif Kara muayeneyi tamamlıyor ve ICD tanısını (J44.1 — KOAH) HBYS\'ye giriyor. Sistem, tanıya uygun eğitim paketini otomatik seçti.', run:()=>selectPatient('ahmet')},
+  {view:'hbys', text:'2️⃣ "Taburcu Et" ile birlikte ADHEP devreye giriyor: eğitim havuzu eşleşiyor, SMS gateway üzerinden mesaj yola çıkıyor. Personele ek iş yükü: sıfır.', run:()=>discharge()},
+  {view:'telefon', text:'3️⃣ Dakikalar içinde Ahmet Bey\'in telefonuna kişiye özel SMS ulaşıyor. Bağlantıya dokununca tanısına özel eğitim merkezi açılıyor — deneyin!', run:()=>{smsSent=true;renderSms();phoneScreen('sms');}},
+  {view:'telefon', text:'4️⃣ Eğitim merkezinde video, broşür, sesli anlatım, SSS, beslenme ve acil durum bilgileri var. Mini bilgi testiyle öğrenme pekiştiriliyor ve HBYS\'ye işleniyor.', run:()=>openPortal()},
+  {view:'asistan', text:'5️⃣ Aklına takılan olursa Ahmet Bey 7/24 yapay zekâ asistanına sorabiliyor. Asistan yalnızca onaylı içerikten yanıt veriyor; riskli mesajları ekibe taşıyor.', run:()=>{ if(document.querySelectorAll('#chat-body .msg').length<2){ setTimeout(()=>userSays('İnhalerimi nasıl kullanırım?'),600);} }},
+  {view:'takip', text:'6️⃣ Taburculuktan sonra sistem 3., 7., 15. ve 30. günlerde kısa anketler gönderiyor. Riskli bir yanıt anında hemşire ekranına düşüyor — bir soruya "Evet" deyin.', run:()=>resetTakip()},
+  {view:'risk', text:'7️⃣ Projenin kalbi: yapay zekâ, vital bulguları ve semptomları birlikte analiz ederek alevlenme riskini kötüleşme başlamadan 3-5 gün önce öngörüyor ve ekibi uyarıyor.'},
+  {view:'hemsire', text:'8️⃣ Tüm uyarılar hemşire panelinde önceliklendiriliyor. Ahmet Bey aynı gün arandı, polikliniğe çağrıldı — olası bir yatış erken müdahaleyle önlendi.'},
+  {view:'yonetim', text:'9️⃣ Yönetim panelinde erişim, tamamlama ve tekrar başvuru göstergeleri izleniyor. Sonuç: standart eğitim, ölçülebilir kalite, daha az yeniden yatış. 🎯'},
+];
+let storyIdx=0;
+function startStory(){
+  storyIdx=0;
+  document.getElementById('storybar').classList.add('show');
+  applyStory();
+}
+function applyStory(){
+  const s=STORY[storyIdx];
+  showView(s.view);
+  document.getElementById('sb-step').textContent='ADIM '+(storyIdx+1)+' / '+STORY.length;
+  document.getElementById('sb-text').textContent=s.text;
+  document.getElementById('sb-next').textContent = storyIdx===STORY.length-1?'Bitir ✓':'Sonraki ›';
+  document.getElementById('sb-dots').innerHTML=STORY.map((_,i)=>`<i class="${i<=storyIdx?'on':''}"></i>`).join('');
+  if(s.run) s.run();
+}
+function storyNext(){
+  if(storyIdx>=STORY.length-1){ closeStory(); showView('kapak'); return; }
+  storyIdx++; applyStory();
+}
+function storyPrev(){ if(storyIdx>0){ storyIdx--; applyStory(); } }
+function closeStory(){ document.getElementById('storybar').classList.remove('show'); }
+
+/* =================== INIT =================== */
+initHbys();
+initDiagChips();
+renderPortal();
+renderQuiz();
+initChat();
+resetTakip();
+initAlerts();
+</script>
+</body>
+</html>
